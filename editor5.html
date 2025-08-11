@@ -2946,34 +2946,7 @@
             }, 50);
         });
 
-        function updateObjectControls() {
-            const zoomLevel = currentZoomLevel || 1;
-            const minControlSize = 12; // Increased from 8
-            const maxControlSize = 24; // Decreased from 60
-            const baseControlSize = 16;
 
-            let newControlSize = baseControlSize / zoomLevel;
-            newControlSize = Math.max(minControlSize, Math.min(maxControlSize, newControlSize));
-
-            const controlProps = {
-                cornerSize: newControlSize,
-                cornerStyle: 'circle',
-                cornerColor: 'rgba(0,0,255,0.5)',
-                cornerStrokeColor: '#0000FF',
-                transparentCorners: false,
-                borderColor: '#0000FF',
-                borderScaleFactor: 2,
-                padding: 5,
-            };
-
-            fabric.Object.prototype.set(controlProps);
-            fabric.Textbox.prototype.set(controlProps);
-            fabric.IText.prototype.set(controlProps);
-
-            fabric.Object.prototype.controls.mtr.offsetY = -30 / zoomLevel;
-
-            canvas.renderAll();
-        }
 
         function applyCanvasTransformations() {
             const mainContentArea = document.getElementById("main-content-area");
@@ -3075,7 +3048,7 @@
             fabric.IText.prototype.set(sharedProperties);
 
             fabric.Object.prototype.controls.mtr.offsetY = -30 / currentZoomLevel;
-            updateObjectControls();
+
             canvas.renderAll();
         }
         // In your resizeCanvas function:
@@ -4223,17 +4196,8 @@
                 ) {
                 }
             });
-            canvas.on('zoom:change', function () {
-                var zoom = canvas.getZoom();
-                canvas.getObjects().forEach(function (obj) {
-                    setObjectControls(obj, zoom);
-                    if (obj.type === 'group') {
-                        obj.getObjects().forEach(function (groupObj) {
-                            setObjectControls(groupObj, zoom);
-                        });
-                    }
-                });
-                canvas.renderAll();
+            canvas.on('zoom:changed', function () {
+                setCanvasHandleSizeForZoom(canvas);
             });
 
             function setObjectControls(obj, zoom) {
@@ -6996,14 +6960,24 @@
                                     // Reset currentZoomLevel so it gets recalculated to fit the new dimensions
                                     currentZoomLevel = null;
                                 }
-
+                                function setCanvasHandleSizeForZoom(canvas) {
+                                    // Get zoom (default to 1 if not zoomed)
+                                    const zoom = canvas.getZoom ? canvas.getZoom() : 1;
+                                    // Set all new objects' handle size
+                                    fabric.Object.prototype.cornerSize = 12 * zoom;
+                                    // If you want to update all existing objects:
+                                    canvas.getObjects().forEach(obj => {
+                                        obj.cornerSize = 12 * zoom;
+                                    });
+                                    canvas.renderAll();
+                                }
                                 // Load the canvas from JSON data.
                                 // The callback function ensures actions happen AFTER the canvas objects are loaded.
                                 canvas.loadFromJSON(canvasData, function () {
                                     // Ensure all objects are rendered on the canvas.
                                     canvas.renderAll();
-                                    updateObjectControls();
-                                    // Resize the canvas and apply transformations based on the new dimensions.
+                                    setCanvasHandleSizeForZoom(canvas);
+
                                     resizeCanvas(); // This will now use the correctly set currentZoomLevel
                                     // Save the current state to the undo/redo history.
                                     saveCanvasState();
