@@ -516,17 +516,17 @@
                 <div id="desktop-action-buttons" class="hidden md:flex items-center gap-2">
                     <!-- Save Dropdown for Desktop -->
                     <button id="saveDesignBtn"
-                        class="flex items-center px-4 py-2 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200">
+                        class="flex items-center px-4 py-1.5   bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200">
                         <i class="fas fa-save mr-2"></i>Save
                     </button>
                     <button id="previewBtn"
-                        class="flex items-center px-4 py-2 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200">
+                        class="flex items-center px-4 py-1.5 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200">
                         <i class="fas fa-eye mr-2"></i>Preview
                     </button>
                     <!-- Download Dropdown -->
                     <div class="relative group">
                         <button
-                            class="flex items-center px-4 py-2 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200"
+                            class="flex items-center px-4 py-1.5 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200"
                             type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-download mr-2"></i>Download
                         </button>
@@ -993,11 +993,14 @@
                                         <p class="mb-1 text-sm">Drag & drop or</p>
                                         <input type="file" class="logo-file-upload-input hidden" accept="image/*" />
                                         <button
-                                            class="browse-bg-files-button px-3 py-1 bg-zinc-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none text-sm">
+                                            class="browse-bg-files-button px-2 py-1 bg-zinc-600 text-white rounded-md hover:bg-blue-700 text-xs   transition-colors duration-200 focus:outline-none text-sm">
                                             <i class="fas fa-folder-open mr-1"></i>Browse Files
                                         </button>
+                                        <button id="automatic-select-public-bg-btn"
+                                            class="px-2  py-1 bg-zinc-600 text-white rounded-md  text-xs hover:bg-blue-700 transition-colors duration-200 focus:outline-none text-sm "><i
+                                                class="fas fa-images mr-1"></i>Public</button>
                                         <button
-                                            class="select-existing-bg-btn px-3 py-1 bg-zinc-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none text-sm ml-1">
+                                            class="select-existing-bg-btn px-2 py-1 bg-zinc-600 text-white rounded-md hover:bg-blue-700  text-xs  transition-colors duration-200 focus:outline-none text-sm ml-1">
                                             <i class="fas fa-images mr-1"></i>Existing
                                         </button>
                                     </div>
@@ -6960,23 +6963,15 @@
                                     // Reset currentZoomLevel so it gets recalculated to fit the new dimensions
                                     currentZoomLevel = null;
                                 }
-                                function setCanvasHandleSizeForZoom(canvas) {
-                                    // Get zoom (default to 1 if not zoomed)
-                                    const zoom = canvas.getZoom ? canvas.getZoom() : 1;
-                                    // Set all new objects' handle size
-                                    fabric.Object.prototype.cornerSize = 12 * zoom;
-                                    // If you want to update all existing objects:
-                                    canvas.getObjects().forEach(obj => {
-                                        obj.cornerSize = 12 * zoom;
-                                    });
-                                    canvas.renderAll();
-                                }
+
+
                                 // Load the canvas from JSON data.
                                 // The callback function ensures actions happen AFTER the canvas objects are loaded.
                                 canvas.loadFromJSON(canvasData, function () {
                                     // Ensure all objects are rendered on the canvas.
                                     canvas.renderAll();
-                                    setCanvasHandleSizeForZoom(canvas);
+                                    applyCanvasTransformations();
+
 
                                     resizeCanvas(); // This will now use the correctly set currentZoomLevel
                                     // Save the current state to the undo/redo history.
@@ -9560,7 +9555,9 @@
             $(document).on("click", "#manual-select-public-bg-btn", function () {
                 openPublicBackgroundsModal(true);
             });
-
+            $(document).on("click", "#automatic-select-public-bg-btn", function () {
+                openPublicBackgroundsModal(true);
+            });
             // Event listener for the close button inside the public backgrounds modal
             $(document).on("click", "#public-backgrounds-modal .modal-close-btn", function () {
                 openPublicBackgroundsModal(false);
@@ -9802,11 +9799,9 @@
                     // Fonts remain default as already set in brandPayload.fonts
                 } else if (selectedBrandData) {
                     // A specific brand is selected
-                    // Fetch logo from the brand object
-                    if (selectedBrandData.logoUrl) {
-                        brandPayload.logo = selectedBrandData.logoUrl;
+                    if (selectedBrandData.logos && selectedBrandData.logos.length > 0) {
+                        brandPayload.logo = selectedBrandData.logos[0].url;
                     } else {
-                        // Default logo if not found in brand data
                         brandPayload.logo = "https://mixcertificate-dev.mixcommerce.co/uploads/1727203930884-MixCertificate.png";
                     }
 
