@@ -567,7 +567,7 @@
                     <!-- Create Dropdown -->
                     <div class="relative group">
                         <button
-                            class="flex items-center px-4 py-2 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200"
+                            class="flex items-center px-4 py-1.5 bg-white text-gray-800 rounded-md border border-gray-300 hover:bg-gray-100 shadow-sm transition-colors duration-200"
                             type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-plus mr-2"></i>Create
                         </button>
@@ -1715,7 +1715,7 @@
                                     <div id="logo-add-options" class="hidden flex flex-col gap-3">
                                         <div class="flex items-center justify-center gap-2">
                                             <button id="selectExistingLogoBtn"
-                                                class="flex-1 px-3 py-2 bg-zinc-800 text-white rounded-md hover:bg-zinc-900 transition-colors duration-200 text-sm text-center">
+                                                class="flex-1 px-3 py-2 bg-zinc-800 text-white rounded-md hover:bg-zinc-900 transition-colors duration-200 text-xs text-center">
                                                 Select Existing
                                             </button>
                                             <span class="text-gray-400 text-sm">or</span>
@@ -9565,12 +9565,28 @@
 
             // Event listener for selecting a background from the modal
             $(document).on("click", "#publicBackgroundsContainer .my-public-image", function () {
-                const selectedUrl = $(this).data("url");
-                // This button is only in the manual tab, so we can directly target the manual preview area
-                $(".manual-logo-image-url").val(selectedUrl);
-                $(".manual-bg-image-preview").attr("src", selectedUrl);
-                $(".manual-bg-image-preview-container").removeClass("hidden");
-                $(".manual-bg-upload-area").addClass("hidden");
+                const selectedUrl = $(this).data("url") || $(this).attr("src");
+
+                console.log(
+                    "manual-tab-content visible:", !$("#manual-tab-content").hasClass("hidden"),
+                    "| automatic-tab-content visible:", !$("#automatic-tab-content").hasClass("hidden"),
+                    "| selectedUrl:", selectedUrl
+                );
+
+                if (!$("#manual-tab-content").hasClass("hidden")) {
+                    console.log("Setting MANUAL background preview to", selectedUrl);
+                    $(".manual-logo-image-url").val(selectedUrl);
+                    $(".manual-bg-image-preview").attr("src", selectedUrl);
+                    $(".manual-bg-image-preview-container").removeClass("hidden");
+                    $(".manual-bg-upload-area").addClass("hidden");
+                } else if (!$("#automatic-tab-content").hasClass("hidden")) {
+                    console.log("Setting AUTOMATIC background preview to", selectedUrl);
+                    $(".bg-image-preview").attr("src", selectedUrl);
+                    $(".bg-image-preview-container").removeClass("hidden");   // <-- was incorrect before
+                    $(".bg-upload-area").addClass("hidden");                  // <-- was incorrect before
+                } else {
+                    console.log("Neither manual nor automatic tab is visible!");
+                }
 
                 showToast("Public background selected successfully!");
                 openPublicBackgroundsModal(false); // Close the modal
@@ -9905,7 +9921,7 @@
 
                 try {
                     const response = await $.ajax({
-                        url: "http://localhost:8501/api/template-generator/multiple/professional",
+                        url: "https://mixcertificate-ms1.mixcommerce.co/template-generator/multiple/professional",
                         method: "POST",
                         contentType: "application/json",
                         data: JSON.stringify(payload),
@@ -10108,7 +10124,7 @@
 
                 try {
                     const response = await $.ajax({
-                        url: "http://localhost:8501/api/template-generator/multiple/quick",
+                        url: "https://mixcertificate-ms1.mixcommerce.co/api/template-generator/multiple/quick",
                         method: "POST",
                         contentType: "application/json",
                         data: JSON.stringify(payload),
